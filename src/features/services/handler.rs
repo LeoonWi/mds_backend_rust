@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use axum::extract::State;
 use axum::{Json, http::StatusCode};
+use serde_json::{Value, json};
 
 use super::logic::Logic;
 use crate::models::dto::Service;
@@ -18,17 +19,18 @@ impl Handler {
     pub async fn create_service(
         State(handler): State<Arc<Handler>>,
         Json(payload): Json<Service>,
-    ) -> Result<Json<Service>, StatusCode> {
+    ) -> (StatusCode, Json<Value>) {
         tracing::info_span!("Service handler: create_service", payload = ?payload)
             .in_scope(|| async {
                 match handler.logic.create(payload).await {
                     Ok(result) => {
                         tracing::debug!("Service created successfully: {:?}", result);
-                        Ok(Json(result))
+                        (StatusCode::CREATED, Json(json!(result)))
                     }
                     Err(err) => {
-                        tracing::error!("Failed to create service: {}", err.to_string());
-                        Err(StatusCode::CONFLICT)
+                        tracing::error!("Failed to create service: {:?}", err);
+                        let (status, Json(error_response)) = err.into_response();
+                        (status, Json(json!(error_response)))
                     }
                 }
             })

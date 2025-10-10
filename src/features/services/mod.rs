@@ -15,6 +15,6 @@ pub fn new(pool: &sqlx::PgPool) -> Router {
     let handler = Arc::new(Handler::new(logic));
 
     Router::new()
-        .route("/create_service", post(Handler::create_service))
+        .route("/services", post(Handler::create_service))
         .with_state(handler)
 }

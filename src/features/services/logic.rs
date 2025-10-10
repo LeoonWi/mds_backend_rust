@@ -1,7 +1,8 @@
-use std::{error::Error, sync::Arc};
+use std::sync::Arc;
 
 use super::repo::Repo;
-use crate::models::{dao, dto};
+use crate::models::dao;
+use crate::models::dto::{Error, Service};
 
 pub struct Logic {
     repo: Arc<Repo>,
@@ -12,12 +13,18 @@ impl Logic {
         Logic { repo: repo }
     }
 
-    pub async fn create(&self, payload: dto::Service) -> Result<dto::Service, Box<dyn Error>> {
+    pub async fn create(&self, payload: Service) -> Result<Service, Error> {
         tracing::debug!("Service logic: Creating service");
-        let name = payload.name;
+        if payload.name.is_empty() {
+            tracing::error!("Field name is empty");
+            return Err(Error::BadRequest(
+                "Field 'name' can't be empty.".to_string(),
+            ));
+        }
         self.repo
-            .add_service(&name)
+            .add_service(&payload.name)
             .await
             .map(|model| dao::Service::to_dto(model))
+            .map_err(|_| Error::Conflict("Object already exists.".to_string()))
     }
 }
