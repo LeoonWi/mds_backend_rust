@@ -1,6 +1,6 @@
 use tracing_subscriber::{
     EnvFilter,
-    fmt::{self, format::FmtSpan},
+    fmt::{self},
     prelude::*,
 };
 
