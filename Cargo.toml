@@ -9,5 +9,12 @@ tokio = { version = "1.47.1", features = ["full"] }
 tower = "0.5.2"
 serde = { version = "1.0.228", features = ["derive"] }
 chrono = { version = "0.4.42", features = ["serde"] }
-sqlx = { version = "0.8.6", features = ["runtime-tokio", "chrono", "postgres", "derive"] }
+sqlx = { version = "0.8.6", features = [
+    "runtime-tokio",
+    "chrono",
+    "postgres",
+    "derive",
+] }
 dotenv = "0.15.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }

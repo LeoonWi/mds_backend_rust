@@ -19,9 +19,19 @@ impl Handler {
         State(handler): State<Arc<Handler>>,
         Json(payload): Json<Service>,
     ) -> Result<Json<Service>, StatusCode> {
-        match handler.logic.create(payload).await {
-            Ok(result) => Ok(Json(result)),
-            Err(_) => Err(StatusCode::CONFLICT),
-        }
+        tracing::info_span!("Service handler: create_service", payload = ?payload)
+            .in_scope(|| async {
+                match handler.logic.create(payload).await {
+                    Ok(result) => {
+                        tracing::debug!("Service created successfully: {:?}", result);
+                        Ok(Json(result))
+                    }
+                    Err(err) => {
+                        tracing::error!("Failed to create service: {}", err.to_string());
+                        Err(StatusCode::CONFLICT)
+                    }
+                }
+            })
+            .await
     }
 }

@@ -13,6 +13,7 @@ impl Repo {
     }
 
     pub async fn add_service<'a>(&self, name: &'a str) -> Result<Service, Box<dyn Error>> {
+        tracing::debug!("Service repo: Adding service with name: {}", name);
         let row = sqlx::query_as(
             "INSERT INTO service (name)
             VALUES ($1)
@@ -20,8 +21,13 @@ impl Repo {
         )
         .bind(name)
         .fetch_one(&*self._pool)
-        .await?;
+        .await
+        .map_err(|err| {
+            tracing::error!("Database error: {err}");
+            err
+        })?;
 
+        tracing::debug!("Service created: {:?}", row);
         Ok(row)
     }
 }
