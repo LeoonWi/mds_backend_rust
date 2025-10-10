@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{Router, routing::get};
+use axum::{Router, routing::post};
 
 use crate::features::services::{handler::Handler, logic::Logic, repo::Repo};
 
@@ -15,6 +15,6 @@ pub fn new(pool: &sqlx::PgPool) -> Router {
     let handler = Arc::new(Handler::new(logic));
 
     Router::new()
-        .route("/create_service", get(Handler::create_service))
+        .route("/create_service", post(Handler::create_service))
         .with_state(handler)
 }

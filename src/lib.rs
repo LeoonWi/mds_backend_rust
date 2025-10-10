@@ -1,8 +1,8 @@
 mod config;
 mod db;
-mod features;
+pub mod features;
 mod logger;
-mod models;
+pub mod models;
 
 use axum::Router;
 
