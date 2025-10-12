@@ -1,6 +1,6 @@
 mod common;
 
-use axum::http::StatusCode;
+use axum::http::{StatusCode, response};
 use mds_backend_rust::{
     features, logger,
     models::{self, dto},
@@ -127,4 +127,50 @@ async fn test_get_services(pool: PgPool) {
     );
 
     assert_eq!(services, result_json);
+}
+
+#[sqlx::test]
+async fn test_get_service_by_id(pool: PgPool) {
+    println!("Testing get service by id");
+
+    logger::init_dev_logger();
+
+    let services = common::setup_services(&pool, 3)
+        .await
+        .expect("Failted to created services");
+
+    let app = features::services::new(&pool);
+    let server = axum_test::TestServer::new(app).unwrap();
+
+    // Request №1 - Testing get service with exists id
+    let id = 2 as i64;
+    let response = server.get(format!("/services/{}", id).as_str()).await;
+    let response_json = response.json::<dto::Service>();
+    println!(
+        "Result request:\n{}",
+        serde_json::to_string_pretty(&response_json).expect("Failed to format JSON")
+    );
+
+    assert_eq!(
+        &response_json,
+        services.iter().find(|&x| x.id == Some(id)).unwrap()
+    );
+
+    // Request №2 - Testing get service with doesn't exists id
+    let id = 4 as i64;
+    let response = server.get(format!("/services/{}", id).as_str()).await;
+    let status_code = response.status_code();
+    let response_json = response.json::<dto::ErrorResponse>();
+    println!(
+        "Result request:\n{}",
+        serde_json::to_string_pretty(&response_json).expect("Failed to format JSON")
+    );
+
+    assert_eq!(
+        (status_code, response_json.error),
+        (
+            StatusCode::NOT_FOUND,
+            format!("Service with id: {} not found", id)
+        )
+    );
 }

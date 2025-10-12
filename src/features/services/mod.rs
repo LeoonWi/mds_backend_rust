@@ -20,5 +20,6 @@ pub fn new(pool: &sqlx::PgPool) -> Router {
     Router::new()
         .route("/services", post(Handler::create_service))
         .route("/services", get(Handler::get_services))
+        .route("/services/{id}", get(Handler::get_service_by_id))
         .with_state(handler)
 }

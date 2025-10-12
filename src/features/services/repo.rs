@@ -44,4 +44,23 @@ impl Repo {
         tracing::debug!("Get services successfully");
         Ok(row)
     }
+
+    pub async fn get_by_id(&self, id: i64) -> Result<Service, Box<dyn Error>> {
+        tracing::debug!("Service repo: Getting service by id = {}", id);
+        let row = sqlx::query_as::<_, Service>("SELECT * FROM service WHERE id = $1")
+            .bind(id)
+            .fetch_one(&*self._pool)
+            .await;
+
+        match row {
+            Ok(obj) => {
+                tracing::debug!("Get service successfully");
+                return Ok(obj);
+            }
+            Err(err) => {
+                tracing::error!("Database error: {err}");
+                return Err(err.into());
+            }
+        }
+    }
 }

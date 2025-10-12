@@ -29,7 +29,7 @@ impl Logic {
     }
 
     pub async fn get_all(&self) -> Vec<Service> {
-        tracing::debug!("Service logic: Get all services");
+        tracing::debug!("Service logic: Getting all services");
         match self.repo.get_all_services().await {
             Ok(v) => v
                 .into_iter()
@@ -37,5 +37,16 @@ impl Logic {
                 .collect(),
             Err(_) => Vec::<Service>::new(),
         }
+    }
+
+    pub async fn get_by_id(&self, id: i64) -> Result<Service, Error> {
+        tracing::debug!("Service logic: Getting service by id");
+        let result = self
+            .repo
+            .get_by_id(id)
+            .await
+            .map(|model| dao::Service::to_dto(model))
+            .map_err(|_| Error::NotFound(format!("Service with id: {} not found", id)));
+        return result;
     }
 }

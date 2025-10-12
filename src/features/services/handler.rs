@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::{Json, http::StatusCode};
 use serde_json::{Value, json};
 
@@ -42,6 +42,27 @@ impl Handler {
             .in_scope(|| async {
                 let arr = handler.logic.get_all().await;
                 Json(arr)
+            })
+            .await
+    }
+
+    pub async fn get_service_by_id(
+        State(handler): State<Arc<Handler>>,
+        Path(id): Path<i64>,
+    ) -> (StatusCode, Json<Value>) {
+        tracing::info_span!("Service handler: get_services_by_id with ", id)
+            .in_scope(|| async {
+                match handler.logic.get_by_id(id).await {
+                    Ok(result) => {
+                        tracing::debug!("Get service by id successfully");
+                        (StatusCode::OK, Json(json!(result)))
+                    }
+                    Err(err) => {
+                        tracing::error!("Failed to get service by id");
+                        let (status, Json(error_response)) = err.into_response();
+                        (status, Json(json!(error_response)))
+                    }
+                }
             })
             .await
     }

@@ -40,6 +40,7 @@ impl ErrorResponse {
 pub enum Error {
     Conflict(String),
     BadRequest(String),
+    NotFound(String),
 }
 
 impl Error {
@@ -47,6 +48,7 @@ impl Error {
         match self {
             Error::Conflict(_) => StatusCode::CONFLICT,
             Error::BadRequest(_) => StatusCode::BAD_REQUEST,
+            Error::NotFound(_) => StatusCode::NOT_FOUND,
         }
     }
 
@@ -54,6 +56,7 @@ impl Error {
         let message = match &self {
             Error::Conflict(msg) => msg,
             Error::BadRequest(msg) => msg,
+            Error::NotFound(msg) => msg,
         };
         (
             self.status_code(),
