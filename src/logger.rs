@@ -19,7 +19,7 @@ use tracing_subscriber::{
 
 pub fn init_dev_logger() {
     // Настройка формата логов: время, уровень, модуль
-    let fmt_layer = fmt::layer().with_file(true).with_line_number(true);
+    let fmt_layer = fmt::layer().with_line_number(true);
 
     // Читаем уровень логов из переменной окружения RUST_LOG (например, "info", "debug")
     let filter_layer = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
@@ -35,7 +35,6 @@ pub fn init_prod_logger() {
     // JSON-формат для продакшена
     let fmt_layer = fmt::layer()
         .json() // Вывод в JSON
-        .with_file(true)
         .with_line_number(true);
 
     let filter_layer = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));

@@ -36,4 +36,13 @@ impl Handler {
             })
             .await
     }
+
+    pub async fn get_services(State(handler): State<Arc<Handler>>) -> Json<Vec<Service>> {
+        tracing::info_span!("Service handler: get_services")
+            .in_scope(|| async {
+                let arr = handler.logic.get_all().await;
+                Json(arr)
+            })
+            .await
+    }
 }

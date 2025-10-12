@@ -27,4 +27,15 @@ impl Logic {
             .map(|model| dao::Service::to_dto(model))
             .map_err(|_| Error::Conflict("Object already exists.".to_string()))
     }
+
+    pub async fn get_all(&self) -> Vec<Service> {
+        tracing::debug!("Service logic: Get all services");
+        match self.repo.get_all_services().await {
+            Ok(v) => v
+                .into_iter()
+                .map(|elem| dao::Service::to_dto(elem))
+                .collect(),
+            Err(_) => Vec::<Service>::new(),
+        }
+    }
 }

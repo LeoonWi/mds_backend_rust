@@ -30,4 +30,18 @@ impl Repo {
         tracing::debug!("Service created: {:?}", row);
         Ok(row)
     }
+
+    pub async fn get_all_services(&self) -> Result<Vec<Service>, Box<dyn Error>> {
+        tracing::debug!("Service repo: Getting vector services");
+        let row = sqlx::query_as("SELECT * FROM service")
+            .fetch_all(&*self._pool)
+            .await
+            .map_err(|err| {
+                tracing::error!("Database error: {err}");
+                err
+            })?;
+
+        tracing::debug!("Get services successfully");
+        Ok(row)
+    }
 }
