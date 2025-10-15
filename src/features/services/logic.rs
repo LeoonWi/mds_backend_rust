@@ -49,4 +49,29 @@ impl Logic {
             .map_err(|_| Error::NotFound(format!("Service with id: {} not found", id)));
         return result;
     }
+
+    pub async fn delete_by_id(&self, id: i64) -> Result<i64, Error> {
+        tracing::debug!("Service logic: Deleting service by id");
+        let result = self.repo.delete_by_id(id).await;
+
+        match result {
+            Ok(rows) => {
+                if rows > 0 {
+                    Ok(id)
+                } else {
+                    tracing::error!("Database error: Service not found by id {}", id);
+                    Err(Error::NotFound(format!(
+                        "Service with id: {} not found",
+                        id
+                    )))
+                }
+            }
+            Err(err) => {
+                tracing::error!("Database error: {err}");
+                Err(Error::InternalServerError(format!(
+                    "Internal database error"
+                )))
+            }
+        }
+    }
 }

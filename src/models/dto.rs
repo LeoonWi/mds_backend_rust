@@ -21,7 +21,7 @@ impl Service {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ErrorResponse {
     pub error: String,
     pub timestamp: DateTime<Utc>,
@@ -41,6 +41,7 @@ pub enum Error {
     Conflict(String),
     BadRequest(String),
     NotFound(String),
+    InternalServerError(String),
 }
 
 impl Error {
@@ -49,6 +50,7 @@ impl Error {
             Error::Conflict(_) => StatusCode::CONFLICT,
             Error::BadRequest(_) => StatusCode::BAD_REQUEST,
             Error::NotFound(_) => StatusCode::NOT_FOUND,
+            Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
@@ -57,6 +59,7 @@ impl Error {
             Error::Conflict(msg) => msg,
             Error::BadRequest(msg) => msg,
             Error::NotFound(msg) => msg,
+            Error::InternalServerError(msg) => msg,
         };
         (
             self.status_code(),

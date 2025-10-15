@@ -63,4 +63,14 @@ impl Repo {
             }
         }
     }
+
+    pub async fn delete_by_id(&self, id: i64) -> Result<u64, sqlx::Error> {
+        tracing::debug!("Service repo: Deleting service by id = {}", id);
+        let result = sqlx::query("DELETE FROM service WHERE id = $1")
+            .bind(id)
+            .execute(&*self._pool)
+            .await?;
+
+        Ok(result.rows_affected())
+    }
 }

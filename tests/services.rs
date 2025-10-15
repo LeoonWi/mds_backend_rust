@@ -174,3 +174,50 @@ async fn test_get_service_by_id(pool: PgPool) {
         )
     );
 }
+
+#[sqlx::test]
+async fn test_delete_service(pool: PgPool) {
+    println!("Testing delete service by id");
+
+    logger::init_dev_logger();
+
+    let mut services = common::setup_services(&pool, 3)
+        .await
+        .expect("Failted to created services");
+
+    let app = features::services::new(&pool);
+    let server = axum_test::TestServer::new(app).unwrap();
+    let id: i64 = 2;
+
+    // Request 1 - delete service with valid id
+    let response_delete = server.delete(format!("/services/{id}").as_str()).await;
+    let response_after_delete = server.get("/services").await;
+    if let Some(index) = services.iter().position(|x| x.id == Some(id)) {
+        services.remove(index);
+    }
+
+    println!("Result request:\n{}\n", response_delete.json::<Value>());
+
+    assert_eq!(response_after_delete.json::<Vec<dto::Service>>(), services);
+
+    // Request 2 - delete service with non exists id
+    let response_delete = server.delete(format!("/services/{id}").as_str()).await;
+    let response_after_delete = server.get("/services").await;
+    println!(
+        "Result request:\n{:?}\n",
+        response_delete.json::<dto::ErrorResponse>()
+    );
+
+    assert_eq!(response_after_delete.json::<Vec<dto::Service>>(), services);
+
+    // Request 3 - delete service with invalid id
+    let id: i64 = -2;
+    let response_delete = server.delete(format!("/services/{id}").as_str()).await;
+    let response_after_delete = server.get("/services").await;
+    println!(
+        "Result request:\n{:?}\n",
+        response_delete.json::<dto::ErrorResponse>()
+    );
+
+    assert_eq!(response_after_delete.json::<Vec<dto::Service>>(), services);
+}

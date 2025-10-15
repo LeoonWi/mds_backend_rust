@@ -66,4 +66,25 @@ impl Handler {
             })
             .await
     }
+
+    pub async fn delete_service(
+        State(handler): State<Arc<Handler>>,
+        Path(id): Path<i64>,
+    ) -> (StatusCode, Json<Value>) {
+        tracing::info_span!("Service handler: delete_service_by_id with ", id)
+            .in_scope(|| async {
+                match handler.logic.delete_by_id(id).await {
+                    Ok(result) => {
+                        tracing::debug!("Delete service by id successfully");
+                        (StatusCode::OK, Json(json!({"id": result})))
+                    }
+                    Err(err) => {
+                        tracing::error!("Failed to delete service by id");
+                        let (status, Json(error_response)) = err.into_response();
+                        (status, Json(json!(error_response)))
+                    }
+                }
+            })
+            .await
+    }
 }
