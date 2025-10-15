@@ -64,6 +64,28 @@ impl Repo {
         }
     }
 
+    pub async fn update_by_id(&self, id: i64, name: String) -> Result<Service, sqlx::Error> {
+        tracing::debug!("Service repo: Updating service by id = {}", id);
+        let row = sqlx::query_as::<_, Service>(
+            "UPDATE service SET name = $1, updated_at = NOW() WHERE id = $2 RETURNING *",
+        )
+        .bind(name)
+        .bind(id)
+        .fetch_one(&*self._pool)
+        .await;
+
+        match row {
+            Ok(obj) => {
+                tracing::debug!("Update service successfully");
+                return Ok(obj);
+            }
+            Err(err) => {
+                tracing::error!("Database error: {err}");
+                return Err(err.into());
+            }
+        }
+    }
+
     pub async fn delete_by_id(&self, id: i64) -> Result<u64, sqlx::Error> {
         tracing::debug!("Service repo: Deleting service by id = {}", id);
         let result = sqlx::query("DELETE FROM service WHERE id = $1")

@@ -50,6 +50,22 @@ impl Logic {
         return result;
     }
 
+    pub async fn put_by_id(&self, id: i64, payload: Service) -> Result<Service, Error> {
+        tracing::debug!("Service logic: Updating service by id");
+        if payload.name.is_empty() {
+            return Err(Error::BadRequest("Field name can't be empty".to_string()));
+        }
+
+        let result = self
+            .repo
+            .update_by_id(id, payload.name)
+            .await
+            .map(|model| dao::Service::to_dto(model))
+            .map_err(|_| Error::NotFound(format!("Service with id: {} not found", id)));
+
+        return result;
+    }
+
     pub async fn delete_by_id(&self, id: i64) -> Result<i64, Error> {
         tracing::debug!("Service logic: Deleting service by id");
         let result = self.repo.delete_by_id(id).await;

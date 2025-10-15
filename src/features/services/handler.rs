@@ -67,6 +67,24 @@ impl Handler {
             .await
     }
 
+    pub async fn update_service(
+        State(handler): State<Arc<Handler>>,
+        Path(id): Path<i64>,
+        Json(payload): Json<Service>,
+    ) -> (StatusCode, Json<Value>) {
+        match handler.logic.put_by_id(id, payload).await {
+            Ok(result) => {
+                tracing::debug!("Put service by id successfully");
+                (StatusCode::OK, Json(json!(result)))
+            }
+            Err(err) => {
+                tracing::error!("Failed to put service by id");
+                let (status, Json(error_response)) = err.into_response();
+                (status, Json(json!(error_response)))
+            }
+        }
+    }
+
     pub async fn delete_service(
         State(handler): State<Arc<Handler>>,
         Path(id): Path<i64>,

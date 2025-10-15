@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     Router,
-    routing::{delete, get, post},
+    routing::{delete, get, post, put},
 };
 
 use crate::features::services::{handler::Handler, logic::Logic, repo::Repo};
@@ -21,6 +21,7 @@ pub fn new(pool: &sqlx::PgPool) -> Router {
         .route("/services", post(Handler::create_service))
         .route("/services", get(Handler::get_services))
         .route("/services/{id}", get(Handler::get_service_by_id))
+        .route("/services/{id}", put(Handler::update_service))
         .route("/services/{id}", delete(Handler::delete_service))
         .with_state(handler)
 }

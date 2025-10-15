@@ -1,6 +1,6 @@
 mod common;
 
-use axum::http::{StatusCode, response};
+use axum::http::StatusCode;
 use mds_backend_rust::{
     features, logger,
     models::{self, dto},
@@ -173,6 +173,74 @@ async fn test_get_service_by_id(pool: PgPool) {
             format!("Service with id: {} not found", id)
         )
     );
+}
+
+#[sqlx::test]
+async fn test_update_service(pool: PgPool) {
+    println!("Testing delete service by id");
+
+    logger::init_dev_logger();
+
+    let mut services = common::setup_services(&pool, 3)
+        .await
+        .expect("Failted to created services");
+
+    let app = features::services::new(&pool);
+    let server = axum_test::TestServer::new(app).unwrap();
+    let id = 2;
+    let payload = dto::Service::new(None, Some("Ультра новое название".to_string()));
+
+    // Request 1 - update name and updated_at fields
+    let response = server
+        .put(format!("/services/{id}").as_str())
+        .json(&payload)
+        .await;
+    let result_json = response.json::<dto::Service>();
+
+    if let Some(service) = services.iter_mut().find(|x| x.id == Some(id)) {
+        service.name = payload.name.clone();
+    }
+
+    println!(
+        "Result request:\n{}\n",
+        serde_json::to_string_pretty(&result_json).expect("Failed to format JSON")
+    );
+
+    assert_eq!(
+        result_json.name,
+        services.iter().find(|x| x.id == Some(id)).unwrap().name
+    );
+
+    // Request 2 - update service with non exists id
+    let id = 4;
+    let response = server
+        .put(format!("/services/{id}").as_str())
+        .json(&payload)
+        .await;
+    let result_json = response.json::<dto::ErrorResponse>();
+
+    println!(
+        "Result request:\n{}\n",
+        serde_json::to_string_pretty(&result_json).expect("Failed to format JSON")
+    );
+
+    assert_eq!(response.status_code(), StatusCode::NOT_FOUND);
+
+    // Request 3 - update service with empty name
+    let id = 2;
+    let payload = dto::Service::new(None, None);
+    let response = server
+        .put(format!("/services/{id}").as_str())
+        .json(&payload)
+        .await;
+    let result_json = response.json::<dto::ErrorResponse>();
+
+    println!(
+        "Result request:\n{}\n",
+        serde_json::to_string_pretty(&result_json).expect("Failed to format JSON")
+    );
+
+    assert_eq!(response.status_code(), StatusCode::BAD_REQUEST);
 }
 
 #[sqlx::test]
