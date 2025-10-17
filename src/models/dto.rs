@@ -1,8 +1,9 @@
 use axum::{Json, http::StatusCode};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use sqlx::types::chrono;
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Service {
     pub id: Option<i64>,
     pub name: String,
@@ -66,4 +67,19 @@ impl Error {
             Json(ErrorResponse::new(message.to_string())),
         )
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Employee {
+    pub id: Option<i64>,
+    pub name: Option<String>,
+    pub last_name: Option<String>,
+    pub middle_name: Option<String>,
+    pub email: Option<String>,
+    pub password: Option<String>,
+    pub role: Option<String>,
+    pub services: Option<Vec<Service>>,
+    pub active: Option<bool>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
